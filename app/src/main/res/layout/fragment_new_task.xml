@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".app.task_new.view.NewTaskFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/white"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <android.support.v7.widget.AppCompatSpinner
+            android:id="@+id/users_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:prompt="@string/app_name" />
+
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/new_task_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Task name" />
+
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/due_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Due date"
+            android:textIsSelectable="true" />
+
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/new_task_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Task content..." />
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/done"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Submit" />
+
+    </LinearLayout>
+
+</layout>
