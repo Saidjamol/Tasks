@@ -24,11 +24,33 @@ public class AllTasksResponse implements Serializable {
     @SerializedName("taskStatus")
     private TaskStatus taskStatus;
 
+    @SerializedName("recipient")
+    private String recipient;
+
+    @SerializedName("lastChangedTimeStamp")
+    private long lastChangedTimeStamp;
+
     public AllTasksResponse(String taskName, String content, TaskStatus taskStatus, long endTime) {
         this.taskName = taskName;
         this.content = content;
         this.taskStatus = taskStatus;
         this.endTime = endTime;
+    }
+
+    public long getLastChangedTimeStamp() {
+        return lastChangedTimeStamp;
+    }
+
+    public void setLastChangedTimeStamp(long lastChangedTimeStamp) {
+        this.lastChangedTimeStamp = lastChangedTimeStamp;
+    }
+
+    public String getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(String recipient) {
+        this.recipient = recipient;
     }
 
     public long getEndTime() {

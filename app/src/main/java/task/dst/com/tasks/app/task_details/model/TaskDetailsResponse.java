@@ -2,6 +2,8 @@ package task.dst.com.tasks.app.task_details.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import task.dst.com.tasks.app.tasks.model.TaskStatus;
+
 public class TaskDetailsResponse{
 
 	@SerializedName("timeStamp")
@@ -16,58 +18,57 @@ public class TaskDetailsResponse{
 	@SerializedName("content")
 	private String content;
 
-	@SerializedName("open")
-	private boolean open;
+	@SerializedName("taskStatus")
+	private TaskStatus taskStatus;
 
-	public void setTimeStamp(long timeStamp){
-		this.timeStamp = timeStamp;
-	}
+	@SerializedName("endTime")
+	private long endTime;
 
-	public long getTimeStamp(){
+	public long getTimeStamp() {
 		return timeStamp;
 	}
 
-	public void setTaskName(String taskName){
-		this.taskName = taskName;
+	public void setTimeStamp(long timeStamp) {
+		this.timeStamp = timeStamp;
 	}
 
-	public String getTaskName(){
+	public String getTaskName() {
 		return taskName;
 	}
 
-	public void setId(String id){
-		this.id = id;
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
 	}
 
-	public String getId(){
+	public String getId() {
 		return id;
 	}
 
-	public void setContent(String content){
-		this.content = content;
+	public void setId(String id) {
+		this.id = id;
 	}
 
-	public String getContent(){
+	public String getContent() {
 		return content;
 	}
 
-	public void setOpen(boolean open){
-		this.open = open;
+	public void setContent(String content) {
+		this.content = content;
 	}
 
-	public boolean isOpen(){
-		return open;
+	public TaskStatus getTaskStatus() {
+		return taskStatus;
 	}
 
-	@Override
- 	public String toString(){
-		return 
-			"TaskDetailsResponse{" + 
-			"timeStamp = '" + timeStamp + '\'' + 
-			",taskName = '" + taskName + '\'' + 
-			",id = '" + id + '\'' + 
-			",content = '" + content + '\'' + 
-			",open = '" + open + '\'' + 
-			"}";
-		}
+	public void setTaskStatus(TaskStatus taskStatus) {
+		this.taskStatus = taskStatus;
+	}
+
+	public long getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(long endTime) {
+		this.endTime = endTime;
+	}
 }

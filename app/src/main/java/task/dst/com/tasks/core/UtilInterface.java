@@ -15,4 +15,8 @@ public interface UtilInterface {
     default void showTopMenu(final boolean show) {
 
     }
+
+    default void refreshTaskList() {
+
+    }
 }

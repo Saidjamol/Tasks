@@ -7,4 +7,6 @@ public interface TaskDetailsView extends BaseView {
     void onSuccess(TaskDetailsResponse response);
 
     String getTaskId();
+
+    void onCloseTask();
 }

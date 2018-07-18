@@ -48,6 +48,7 @@ public class TaskDetailsPresenterImpl extends BasePresenterImpl<TaskDetailsView>
                     public void onResponse(Call<TaskDoneResponse> call, Response<TaskDoneResponse> response) {
                         if (response.isSuccessful()) {
                             view.showToast("Task successfully closed");
+                            view.onCloseTask();
                         } else {
                             view.showToast("Error");
                         }

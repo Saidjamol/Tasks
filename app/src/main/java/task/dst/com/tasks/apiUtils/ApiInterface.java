@@ -14,6 +14,7 @@ import task.dst.com.tasks.app.task_details.model.TaskDetailsResponse;
 import task.dst.com.tasks.app.task_details.model.TaskDoneResponse;
 import task.dst.com.tasks.app.tasks.model.AllTasksResponse;
 import task.dst.com.tasks.app.task_new.model.UserListResponse;
+import task.dst.com.tasks.app.tasks.model.scheduleTaskModel.TaskScheduleResponse;
 
 public interface ApiInterface {
     @GET("api/login")
@@ -33,4 +34,10 @@ public interface ApiInterface {
 
     @GET("api/get_all_users/{user_id}")
     Call<UserListResponse> getUsers(@Path("user_id") final String user_id);
+
+    @GET("api/schedule_task/{userId}/{taskId}")
+    Call<TaskScheduleResponse> sendTaskSchedule(@Path("userId") final String user_id, @Path("taskId") final String task_id);
+
+    @GET("api/sent_task_list/{user_id}")
+    Call<List<AllTasksResponse>> fetchSentTasks(@Path("user_id") final String userId);
 }

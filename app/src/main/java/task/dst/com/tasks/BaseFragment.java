@@ -20,6 +20,10 @@ public abstract class BaseFragment<T extends BasePresenterImpl> extends Fragment
 
     }
 
+//    public void registerPresenterView(Object object) {
+//        presenterView = (T) object;
+//    }
+
     @Override
     public void showToast(String text) {
         Toast.makeText(getContext(), text, Toast.LENGTH_SHORT).show();
@@ -33,28 +37,34 @@ public abstract class BaseFragment<T extends BasePresenterImpl> extends Fragment
     @Override
     public void onStart() {
         super.onStart();
-        presenterView.attachView(this);
+//        presenterView.attachView(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
+//        presenterView.detachView();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
         presenterView.detachView();
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context != null) {
-            if (this instanceof LoginFragment || this instanceof RegistrationFragment) {
-                ((UtilInterface) getActivity()).showTopMenu(false);
-            } else {
-                new Handler().postDelayed(()-> {
-                    ((UtilInterface) getActivity()).showTopMenu(true);
-                }, 300);
-
-            }
-        }
+//        if (context != null) {
+//            if (this instanceof LoginFragment || this instanceof RegistrationFragment) {
+//                ((UtilInterface) getActivity()).showTopMenu(false);
+//            } else {
+////                new Handler().postDelayed(() -> {
+//                    ((UtilInterface) getActivity()).showTopMenu(true);
+////                }, 300);
+//
+//            }
+//        }
     }
 
 

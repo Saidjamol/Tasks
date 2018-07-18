@@ -5,15 +5,20 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.gson.Gson;
 
+import java.util.Date;
+
 import io.paperdb.Paper;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import task.dst.com.tasks.MainActivity;
 import task.dst.com.tasks.R;
 import task.dst.com.tasks.app.tasks.model.AllTasksResponse;
 import ua.naiksoftware.stomp.Stomp;
@@ -23,7 +28,7 @@ import static task.dst.com.tasks.apiUtils.ApiClient.BASE_URL;
 
 public class TaskService extends Service {
 
-    private static StompClient stompClient;
+    private static StompClient stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, BASE_URL + "ws");
 
     public TaskService() {
 
@@ -38,7 +43,7 @@ public class TaskService extends Service {
     }
 
     private void connectSockets() {
-        stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, BASE_URL + "ws");
+
         stompClient.lifecycle()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -51,74 +56,111 @@ public class TaskService extends Service {
                         case ERROR:
 //                            mStompClient.send("/app/status", new Gson().toJson(new UserStatus(id, false)));
                             Log.e("TOPICSUB", "Stomp connection error", lifecycleEvent.getException());
+                            stompClient.connect();
                             break;
                         case CLOSED:
 //                            mStompClient.send("/app/status", new Gson().toJson(new UserStatus(id, false)));
                             Log.d("TOPICSUB", "Stomp connection closed");
+                            stompClient.connect();
                             break;
                     }
                 });
 
-        stompClient.connect();
+        if (!stompClient.isConnected()) {
+            stompClient.connect();
+        }
 
-        stompClient.topic("/topic/" + Paper.book().read("userId"))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(topicMessage -> {
-                    Gson gson = new Gson();
-                    AllTasksResponse response = gson.fromJson(topicMessage.getPayload(), AllTasksResponse.class);
-
-                    Intent intent = new Intent("MESSAGE");
-                    intent.putExtra("TASK", response);
-                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-//                    showNotification(response.getTaskName());
-
-                    Log.d("TOPICSUB", "Received " + topicMessage.getPayload());
-                });
-
-
+        subscribeToReceiveTask();
+        subscribeToCreatedTask();
     }
 
-    private void showNotification(String content) {
+    private void showNotification(AllTasksResponse content) {
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         Notification.Builder builder = new Notification.Builder(this);
 
-        Intent notificationIntent = getPackageManager().getLaunchIntentForPackage("com.example.msi.taskmaker").putExtra("taskmi", content).setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        notificationIntent.putExtra("NOTIFICATION", content.getId());
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_ONE_SHOT);
 
         //set
         builder.setContentIntent(contentIntent);
         builder.setSmallIcon(R.drawable.ic_logout_selector);
-        builder.setContentText(content);
-        builder.setContentTitle("New Task");
+        builder.setContentText(content.getContent());
+        builder.setContentTitle(content.getTaskName());
         builder.setAutoCancel(true);
         builder.setPriority(Notification.PRIORITY_MAX);
-
         builder.setDefaults(Notification.DEFAULT_ALL);
 
         Notification notification = builder.build();
-        nm.notify(content, 1, notification);
+        nm.notify((int) System.currentTimeMillis(), notification);
     }
 
-    public void sendTask(AllTasksResponse newTask, String id) {
-        if (newTask != null && id.equals("")) {
-            Log.d("TOPICSUB", newTask.toString());
-            Log.d("TOPICSUB", id);
-            stompClient.send("/app/" + id, new Gson().toJson(newTask)).subscribe();
-        }
+    public void sendTask(AllTasksResponse newTask, String receiverId) {
+        Log.d("TOPICSUB", newTask.toString());
+        stompClient.send("/app/" + Paper.book().read("userId") + "/" + receiverId, new Gson().toJson(newTask)).subscribe();
     }
 
-    public void disconnectSocket() {
-        stompClient.disconnect();
+    public void subscribeToReceiveTask() {
+        stompClient.topic("/topic/" + Paper.book().read("userId"))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(topicMessage -> {
+                    AllTasksResponse response = new Gson().fromJson(topicMessage.getPayload(), AllTasksResponse.class);
+
+                    showNotification(response);
+                    Intent intent = new Intent("MESSAGE");
+                    intent.putExtra("TASK", response);
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+                    Log.d("TOPICSUB", "Received " + topicMessage.getPayload());
+                });
     }
 
-    public void subscribeTask(String taskId) {
+    public void subscribeToCreatedTask() {
+        stompClient.topic("/topic/my_task/" + Paper.book().read("userId"))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(topicMessage -> {
+                    Log.d("TOPIC_TASK", "Received" + String.valueOf(topicMessage.getPayload()));
+                    AllTasksResponse task = new Gson().fromJson(topicMessage.getPayload(), AllTasksResponse.class);
+                    subscribeToCreatedTaskUpdate(task.getId());
+                });
+    }
+
+    public void subscribeTaskUpdate(String taskId) {
         stompClient.topic("/topic/" + taskId)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(topicMessage -> {
-                    Log.d("TOPIC", String.valueOf(topicMessage));
+                    Log.d("TOPIC_TASK", "Received: " + String.valueOf(topicMessage.getPayload()));
+
+                    AllTasksResponse response = new Gson().fromJson(topicMessage.getPayload(), AllTasksResponse.class);
+
+                    Intent intent = new Intent("TASK_UPDATE");
+                    intent.putExtra("TASK", response);
+
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
                 });
+    }
+
+    public void subscribeToCreatedTaskUpdate(String taskId) {
+        stompClient.topic("/topic/my_task/" + taskId)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(topicMessage -> {
+                    Log.d("TOPIC_TASK", "Received: " + String.valueOf(topicMessage.getPayload()));
+                });
+    }
+
+    public void disconnectSocket() {
+        Log.d("STOMP", "STOPM closed");
+        stompClient.disconnect();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        disconnectSocket();
     }
 
     @Override

@@ -25,4 +25,6 @@ public interface TasksPresenter extends BasePresenter {
 
     void updateTaskList(AllTasksResponse response);
 
+    void getSentTasks();
+
 }

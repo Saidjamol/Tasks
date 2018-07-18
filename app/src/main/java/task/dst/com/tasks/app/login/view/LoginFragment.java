@@ -4,6 +4,8 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -15,6 +17,7 @@ import task.dst.com.tasks.app.login.model.LoginResponse;
 import task.dst.com.tasks.app.login.presenter.LoginPresenterImpl;
 import task.dst.com.tasks.app.register.view.RegistrationFragment;
 import task.dst.com.tasks.app.tasks.view.TasksFragment;
+import task.dst.com.tasks.app.tasks_pager.view.TasksMainFragment;
 import task.dst.com.tasks.core.UtilInterface;
 import task.dst.com.tasks.databinding.FragmentLoginBinding;
 
@@ -34,11 +37,19 @@ public class LoginFragment extends BaseFragment<LoginPresenterImpl> implements L
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_login, container, false);
+        setHasOptionsMenu(true);
         init();
         return binding.getRoot();
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        menu.clear();
+    }
+
     private void init() {
+//        presenterView = new LoginPresenterImpl(this);
         presenterView = new LoginPresenterImpl(this);
 
         binding.login.setOnClickListener(v -> {
@@ -54,7 +65,8 @@ public class LoginFragment extends BaseFragment<LoginPresenterImpl> implements L
     public void onSuccess(LoginResponse response) {
         Paper.book().write("isLogged", true);
         Paper.book().write("userId", response.getId());
-        ((UtilInterface) getActivity()).switchFragment(new TasksFragment());
+//        ((UtilInterface) getActivity()).switchFragment(new TasksFragment());
+        ((UtilInterface) getActivity()).switchFragment(new TasksMainFragment());
     }
 
     @Override

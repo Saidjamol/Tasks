@@ -16,7 +16,7 @@ public abstract class BasePresenterImpl<T extends BaseView> implements BasePrese
     protected T view;
     protected TaskService taskService = new TaskService();
 
-    public BasePresenterImpl(T t) {
+    public BasePresenterImpl(T t) { // attaches view
         this.view = t;
     }
 
@@ -67,4 +67,5 @@ public abstract class BasePresenterImpl<T extends BaseView> implements BasePrese
             context.startService(intent);
         }
     }
+
 }

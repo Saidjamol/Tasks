@@ -1,5 +1,7 @@
 package task.dst.com.tasks.app.tasks.presenter;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -12,32 +14,49 @@ import task.dst.com.tasks.apiUtils.ApiClient;
 import task.dst.com.tasks.apiUtils.ApiInterface;
 import task.dst.com.tasks.app.tasks.adapter.TaskListItemView;
 import task.dst.com.tasks.app.tasks.model.AllTasksResponse;
+import task.dst.com.tasks.app.tasks.model.scheduleTaskModel.TaskScheduleResponse;
 import task.dst.com.tasks.app.tasks.view.TasksView;
 import task.dst.com.tasks.core.BasePresenterImpl;
 
 public class TasksPresenterImpl extends BasePresenterImpl<TasksView> implements TasksPresenter {
 
     private final List<AllTasksResponse> allTasksList = new ArrayList<>();
-//    private String userId;
-//    private TaskService taskService;
 
     public TasksPresenterImpl(TasksView tasksView) {
         super(tasksView);
     }
 
-//    @Override
-//    public void startTaskService(Context context) {
-//        taskService = new TaskService();
-//        Intent intent = new Intent(context, taskService.getClass());
-//        if (!isMyServiceRunning(taskService.getClass(), context)) {
-//            context.startService(intent);
-//        }
-//    }
-
     @Override
     public void updateTaskList(AllTasksResponse response) {
-        allTasksList.add(0, response);
-        view.refreshTaskAdapter();
+            Log.d("RECEIVED_TASK", response.toString());
+            allTasksList.add(0, response);
+            if (response.getEndTime() != 0) {
+                sendTaskSchedule(Paper.book().read("userId"), response.getId());
+            }
+            view.refreshTaskAdapter();
+    }
+
+    private void sendTaskSchedule(String user_id, String task_id) {
+        ApiClient.getClient()
+                .create(ApiInterface.class)
+                .sendTaskSchedule(user_id, task_id)
+                .enqueue(new Callback<TaskScheduleResponse>() {
+                    @Override
+                    public void onResponse(Call<TaskScheduleResponse> call, Response<TaskScheduleResponse> response) {
+                        if (response.isSuccessful()) {
+                            view.showToast("SCHEDULE " + response.body().getMessage());
+                            taskService.subscribeTaskUpdate(task_id);
+                        } else {
+                            view.showToast("ERROR SCHEDULE");
+                        }
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<TaskScheduleResponse> call, Throwable t) {
+                        view.showToast("FAIL");
+                    }
+                });
     }
 
     @Override
@@ -45,6 +64,36 @@ public class TasksPresenterImpl extends BasePresenterImpl<TasksView> implements 
         ApiClient.getClient()
                 .create(ApiInterface.class)
                 .fetchTasks(Paper.book().read("userId"))
+                .enqueue(new Callback<List<AllTasksResponse>>() {
+                    @Override
+                    public void onResponse(Call<List<AllTasksResponse>> call, Response<List<AllTasksResponse>> response) {
+                        if (response.isSuccessful()) {
+                            view.onSuccess(response.body());
+                            allTasksList.clear();
+                            if (response.body() != null) {
+                                allTasksList.addAll(Objects.requireNonNull(response.body()));
+                            }
+                        } else {
+                            view.showToast("Error");
+                            view.onError(response.body());
+                        }
+                        view.setRefreshView(false);
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<AllTasksResponse>> call, Throwable t) {
+                        view.showToast("Fail");
+                        t.printStackTrace();
+                        view.setRefreshView(false);
+                    }
+                });
+    }
+
+    @Override
+    public void getSentTasks() {
+        ApiClient.getClient()
+                .create(ApiInterface.class)
+                .fetchSentTasks(Paper.book().read("userId"))
                 .enqueue(new Callback<List<AllTasksResponse>>() {
                     @Override
                     public void onResponse(Call<List<AllTasksResponse>> call, Response<List<AllTasksResponse>> response) {
@@ -125,7 +174,7 @@ public class TasksPresenterImpl extends BasePresenterImpl<TasksView> implements 
     public void onBindTaskAtPosition(int position, TaskListItemView itemView) {
         itemView.setTaskName(allTasksList.get(position).getTaskName());
         itemView.setTaskMsg(allTasksList.get(position).getContent());
-        itemView.setTaskTime(parseTime(allTasksList.get(position).getTimeStamp()));
+        itemView.setTaskTime(parseTime(allTasksList.get(position).getLastChangedTimeStamp()));
         itemView.setTaskStatus(allTasksList.get(position).getTaskStatus());
     }
 
