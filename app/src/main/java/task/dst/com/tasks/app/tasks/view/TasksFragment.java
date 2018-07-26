@@ -26,6 +26,9 @@ import task.dst.com.tasks.app.tasks.presenter.TasksPresenterImpl;
 import task.dst.com.tasks.core.UtilInterface;
 import task.dst.com.tasks.databinding.FragmentTasksBinding;
 
+import static task.dst.com.tasks.services.TaskService.TASK_RECEIVE_UPDATE;
+import static task.dst.com.tasks.services.TaskService.TASK_SENT_UPDATE;
+
 /**
  * A simple {@link Fragment} subclass.
  */
@@ -56,6 +59,7 @@ public class TasksFragment extends BaseFragment<TasksPresenterImpl> implements T
         binding.refresh.setOnRefreshListener(this);
 
         if (getArguments() != null) {
+            presenterView.setCurrentTab(getArguments().getInt("TASK_TAB"));
             switch (getArguments().getInt("TASK_TAB")) {
                 case 0:
                     presenterView.getTasks();
@@ -76,28 +80,52 @@ public class TasksFragment extends BaseFragment<TasksPresenterImpl> implements T
 //            }
 //        }, new IntentFilter("MESSAGE"));
 
-        IntentFilter filter = new IntentFilter("MESSAGE");
-        filter.addAction("TASK_UPDATE");
+//        IntentFilter filter = new IntentFilter(TASK_RECEIVE);
+//        filter.addAction(TASK_RECEIVE_UPDATE);
+//        filter.addAction(TASK_SENT);
+//        filter.addAction(TASK_SENT_UPDATE);
+//
+//        BroadcastReceiver ActivityDataReceiver = new BroadcastReceiver() {
+//            @Override
+//            public void onReceive(Context context, Intent intent) {
+//                if (getArguments() != null) {
+//                    if (getArguments().getInt("TASK_TAB") == 0) {
+//                        if (intent.getAction().equals(TASK_RECEIVE)) {
+//                            presenterView.updateTaskReceiveList((AllTasksResponse) intent.getSerializableExtra("TASK"));
+//                        } else if (intent.getAction().equals(TASK_SENT)) {
+//
+//                        }
+//                    }
+//                }
+//
+//                if (intent.getAction().equals(TASK_RECEIVE_UPDATE)) {
+//                    showToast(TASK_RECEIVE_UPDATE);
+//                    refreshTaskList();
+//                }
+//            }
+//        };
+//
+//        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(ActivityDataReceiver, filter);
 
-        BroadcastReceiver ActivityDataReceiver = new BroadcastReceiver() {
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (getArguments() != null) {
-                    if (getArguments().getInt("TASK_TAB") == 0) {
-                        if (intent.getAction().equals("MESSAGE")) {
-                            presenterView.updateTaskList((AllTasksResponse) intent.getSerializableExtra("TASK"));
-                        }
-                    }
+//                    if (getArguments().getInt("TASK_TAB") == 0) {
+                    presenterView.updateTaskList(intent, getArguments().getInt("TASK_TAB"));
+//                    }
                 }
 
-                if (intent.getAction().equals("TASK_UPDATE")) {
-                    showToast("TASK_UPDATE");
+                if (intent.hasExtra(TASK_RECEIVE_UPDATE)) {
+                    showToast(TASK_RECEIVE_UPDATE);
+                    refreshTaskList();
+                } else if (intent.hasExtra(TASK_SENT_UPDATE)) {
+                    showToast(TASK_SENT_UPDATE);
                     refreshTaskList();
                 }
             }
-        };
+        }, new IntentFilter("TASKS"));
 
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(ActivityDataReceiver, filter);
     }
 
 
@@ -138,8 +166,18 @@ public class TasksFragment extends BaseFragment<TasksPresenterImpl> implements T
     }
 
     @Override
-    public void refreshTaskAdapter() {
-        binding.taskList.getAdapter().notifyItemInserted(0);
+    public void refreshTaskAdapter(int task_tab) {
+        switch (getArguments().getInt("TASK_TAB")) {
+            case 0:
+                binding.taskList.getAdapter().notifyItemRangeChanged(0, presenterView.getTaskListCount());
+//                binding.taskList.getAdapter().notifyItemInserted(0);
+                break;
+            case 1:
+                binding.taskList.getAdapter().notifyItemRangeChanged(0, presenterView.getTaskListCount());
+//                binding.taskList.getAdapter().notifyItemInserted(0);
+                break;
+        }
+
     }
 
     @Override

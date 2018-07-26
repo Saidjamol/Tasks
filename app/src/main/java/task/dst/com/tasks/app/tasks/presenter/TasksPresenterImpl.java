@@ -1,5 +1,6 @@
 package task.dst.com.tasks.app.tasks.presenter;
 
+import android.content.Intent;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -18,22 +19,51 @@ import task.dst.com.tasks.app.tasks.model.scheduleTaskModel.TaskScheduleResponse
 import task.dst.com.tasks.app.tasks.view.TasksView;
 import task.dst.com.tasks.core.BasePresenterImpl;
 
+import static task.dst.com.tasks.services.TaskService.TASK_RECEIVE;
+import static task.dst.com.tasks.services.TaskService.TASK_SENT;
+
 public class TasksPresenterImpl extends BasePresenterImpl<TasksView> implements TasksPresenter {
 
-    private final List<AllTasksResponse> allTasksList = new ArrayList<>();
+    private final List<AllTasksResponse> allReceiveTaskList = new ArrayList<>();
+    private final List<AllTasksResponse> allSentTaskList = new ArrayList<>();
+
+    private int currentTab;
 
     public TasksPresenterImpl(TasksView tasksView) {
         super(tasksView);
     }
 
     @Override
-    public void updateTaskList(AllTasksResponse response) {
-            Log.d("RECEIVED_TASK", response.toString());
-            allTasksList.add(0, response);
-            if (response.getEndTime() != 0) {
-                sendTaskSchedule(Paper.book().read("userId"), response.getId());
+    public void updateTaskReceiveList(AllTasksResponse response) {
+        Log.d("RECEIVED_TASK", response.toString());
+        allReceiveTaskList.add(0, response);
+        if (response.getEndTime() != 0) {
+            sendTaskSchedule(Paper.book().read("userId"), response.getId());
+        }
+//        view.refreshTaskAdapter(task_tab);
+    }
+
+    @Override
+    public void updateTaskList(Intent intent, int task_tab) {
+        AllTasksResponse tasksResponse = null;
+        if (intent.hasExtra(TASK_RECEIVE)) {
+            tasksResponse = (AllTasksResponse) intent.getSerializableExtra(TASK_RECEIVE);
+            allReceiveTaskList.add(0, tasksResponse);
+//            view.refreshTaskAdapter(task_tab);
+
+            if (tasksResponse.getEndTime() != 0) {
+                sendTaskSchedule(Paper.book().read("userId"), tasksResponse.getId());
             }
-            view.refreshTaskAdapter();
+        } else if (intent.hasExtra(TASK_SENT)) {
+            tasksResponse = (AllTasksResponse) intent.getSerializableExtra(TASK_SENT);
+            allSentTaskList.add(0, tasksResponse);
+//            view.refreshTaskAdapter(task_tab);
+        }
+        view.refreshTaskAdapter(task_tab);
+
+//        if (tasksResponse != null) {
+//
+//        }
     }
 
     private void sendTaskSchedule(String user_id, String task_id) {
@@ -69,9 +99,9 @@ public class TasksPresenterImpl extends BasePresenterImpl<TasksView> implements 
                     public void onResponse(Call<List<AllTasksResponse>> call, Response<List<AllTasksResponse>> response) {
                         if (response.isSuccessful()) {
                             view.onSuccess(response.body());
-                            allTasksList.clear();
+                            allReceiveTaskList.clear();
                             if (response.body() != null) {
-                                allTasksList.addAll(Objects.requireNonNull(response.body()));
+                                allReceiveTaskList.addAll(Objects.requireNonNull(response.body()));
                             }
                         } else {
                             view.showToast("Error");
@@ -99,9 +129,9 @@ public class TasksPresenterImpl extends BasePresenterImpl<TasksView> implements 
                     public void onResponse(Call<List<AllTasksResponse>> call, Response<List<AllTasksResponse>> response) {
                         if (response.isSuccessful()) {
                             view.onSuccess(response.body());
-                            allTasksList.clear();
+                            allSentTaskList.clear();
                             if (response.body() != null) {
-                                allTasksList.addAll(Objects.requireNonNull(response.body()));
+                                allSentTaskList.addAll(Objects.requireNonNull(response.body()));
                             }
                         } else {
                             view.showToast("Error");
@@ -119,7 +149,17 @@ public class TasksPresenterImpl extends BasePresenterImpl<TasksView> implements 
                 });
     }
 
-//    @Override
+    @Override
+    public void setCurrentTab(int currentTab) {
+        this.currentTab = currentTab;
+    }
+
+    @Override
+    public int getCurrentTab() {
+        return currentTab;
+    }
+
+    //    @Override
 //    public boolean createNewTask(AllTasksResponse newTask) {
 //        taskService.sendTask(newTask, userId);
 //        return true;
@@ -167,19 +207,45 @@ public class TasksPresenterImpl extends BasePresenterImpl<TasksView> implements 
 
     @Override
     public void onItemClickedAtPosition(int adapterPosition) {
-        view.openTaskDetails(allTasksList.get(adapterPosition).getId());
+        switch (getCurrentTab()) {
+            case 0:
+                view.openTaskDetails(allReceiveTaskList.get(adapterPosition).getId());
+                break;
+            case 1:
+                view.openTaskDetails(allSentTaskList.get(adapterPosition).getId());
+                break;
+
+        }
     }
 
     @Override
     public void onBindTaskAtPosition(int position, TaskListItemView itemView) {
-        itemView.setTaskName(allTasksList.get(position).getTaskName());
-        itemView.setTaskMsg(allTasksList.get(position).getContent());
-        itemView.setTaskTime(parseTime(allTasksList.get(position).getLastChangedTimeStamp()));
-        itemView.setTaskStatus(allTasksList.get(position).getTaskStatus());
+        switch (getCurrentTab()) {
+            case 0:
+                itemView.setTaskName(allReceiveTaskList.get(position).getTaskName());
+                itemView.setTaskMsg(allReceiveTaskList.get(position).getContent());
+                itemView.setTaskTime(parseTime(allReceiveTaskList.get(position).getLastChangedTimeStamp()));
+                itemView.setTaskStatus(allReceiveTaskList.get(position).getTaskStatus());
+                break;
+            case 1:
+                itemView.setTaskName(allSentTaskList.get(position).getTaskName());
+                itemView.setTaskMsg(allSentTaskList.get(position).getContent());
+                itemView.setTaskTime(parseTime(allSentTaskList.get(position).getLastChangedTimeStamp()));
+                itemView.setTaskStatus(allSentTaskList.get(position).getTaskStatus());
+                break;
+        }
+
     }
 
     @Override
     public int getTaskListCount() {
-        return allTasksList.size();
+        Log.d("CURRENT_TAB", String.valueOf(getCurrentTab()));
+        switch (getCurrentTab()) {
+            case 0:
+                return allReceiveTaskList.size();
+            case 1:
+                return allSentTaskList.size();
+        }
+        return 0;
     }
 }

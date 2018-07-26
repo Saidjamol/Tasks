@@ -3,7 +3,6 @@ package task.dst.com.tasks.app.tasks.view;
 import java.util.List;
 
 import task.dst.com.tasks.app.tasks.model.AllTasksResponse;
-import task.dst.com.tasks.app.task_new.model.UserLists;
 import task.dst.com.tasks.core.BaseView;
 
 public interface TasksView extends BaseView {
@@ -16,6 +15,6 @@ public interface TasksView extends BaseView {
 
 //    void onGetUsers(UserLists userListResponse);
 
-    void refreshTaskAdapter();
+    void refreshTaskAdapter(int task_tab);
 
 }

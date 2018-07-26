@@ -22,7 +22,7 @@ public class RegistrationPresenterImpl extends BasePresenterImpl<RegistrationVie
 
         ApiClient.getClient()
                 .create(ApiInterface.class)
-                .register(register.getUsername(), register.getPassword())
+                .register(register.getUsername(), register.getPassword(), register.getEmail())
                 .enqueue(new Callback<RegisterResponse>() {
                     @Override
                     public void onResponse(Call<RegisterResponse> call, Response<RegisterResponse> response) {

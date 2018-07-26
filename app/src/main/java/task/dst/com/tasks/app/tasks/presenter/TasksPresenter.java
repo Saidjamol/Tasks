@@ -1,6 +1,6 @@
 package task.dst.com.tasks.app.tasks.presenter;
 
-import android.content.Context;
+import android.content.Intent;
 
 import task.dst.com.tasks.app.tasks.adapter.TaskListItemView;
 import task.dst.com.tasks.app.tasks.model.AllTasksResponse;
@@ -23,8 +23,14 @@ public interface TasksPresenter extends BasePresenter {
 
 //    void startTaskService(Context context);
 
-    void updateTaskList(AllTasksResponse response);
+    void updateTaskReceiveList(AllTasksResponse response);
+
+    void updateTaskList(Intent intent, int task_tab);
 
     void getSentTasks();
+
+    void setCurrentTab(final int currentTab);
+
+    int getCurrentTab();
 
 }

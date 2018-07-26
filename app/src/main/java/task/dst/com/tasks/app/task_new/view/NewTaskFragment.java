@@ -70,7 +70,7 @@ public class NewTaskFragment extends BaseFragment<NewTaskPresenterImpl> implemen
         Calendar calendar = Calendar.getInstance();
 
         pickerLayoutBinding.pickerDone.setOnClickListener(v -> {
-            calendar.set(Calendar.getInstance().get(Calendar.YEAR), Calendar.getInstance().get(Calendar.MONTH), Calendar.getInstance().get(Calendar.DAY_OF_MONTH), pickerLayoutBinding.picker.getCurrentHour(), pickerLayoutBinding.picker.getCurrentMinute());
+            calendar.set(Calendar.getInstance().get(Calendar.YEAR), Calendar.getInstance().get(Calendar.MONTH), Calendar.getInstance().get(Calendar.DAY_OF_MONTH), pickerLayoutBinding.picker.getCurrentHour(), pickerLayoutBinding.picker.getCurrentMinute(), 0);
             time = calendar.getTimeInMillis();
             ((AppCompatEditText) view).setText(new SimpleDateFormat("yyy/MM/dd HH:ss", Locale.ENGLISH).format(calendar.getTimeInMillis()));
         });

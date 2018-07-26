@@ -55,6 +55,7 @@ public class RegistrationFragment extends BaseFragment<RegistrationPresenterImpl
         Register register = new Register();
         register.setUsername(binding.username.getText().toString());
         register.setPassword(binding.username.getText().toString());
+        register.setEmail(binding.email.getText().toString());
         return register;
     }
 }

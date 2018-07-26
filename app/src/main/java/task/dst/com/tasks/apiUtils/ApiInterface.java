@@ -21,7 +21,7 @@ public interface ApiInterface {
     Call<LoginResponse> login(@Query("name") final String username, @Query("password") final String password);
 
     @POST("api/register_user")
-    Call<RegisterResponse> register(@Query("name") final String username, @Query("password") final String password);
+    Call<RegisterResponse> register(@Query("name") final String username, @Query("password") final String password, @Query("email") final String email);
 
     @GET("api/get_tasks/{user_id}")
     Call<List<AllTasksResponse>> fetchTasks(@Path("user_id") final String userId);
